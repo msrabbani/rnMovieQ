@@ -1,5 +1,5 @@
 import React from 'react';
-import {FlatList, Dimensions} from 'react-native';
+import {FlatList, Dimensions, ActivityIndicator, View} from 'react-native';
 import styled from 'styled-components/native';
 
 const screenWidth = Dimensions.get("screen").width;
@@ -18,15 +18,40 @@ const MovieList: React.FC<Props> = (props) => {
       </Card>
     );
   };
-
+  const BottomView = () => {
+    return (
+      <View>
+            {
+                (props.fetchingStatus)
+                ?
+                    <ActivityIndicator size="large" color = "grey" style = {{ marginLeft: 6, marginVertical:10 }} />
+                :
+                    null
+            }
+      </View>  
+    )
+  }
   return(
     <Container>
-        <FlatList
-          data={props.data}
-          renderItem={renderItems}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-        />
+      {
+        props.isLoading ? <ActivityIndicator size="large"/> : 
+         ( <FlatList
+            data={props.data}
+            renderItem={renderItems}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            initialNumToRender={1}
+            maxToRenderPerBatch={1}
+            onEndReachedThreshold={2}
+            onEndReached={() => {
+              props.getApi()
+            }}
+            ListFooterComponent = { BottomView() }
+            showsHorizontalScrollIndicator={false}
+          />
+          )
+        
+      }
     </Container>
   )
 }
@@ -61,9 +86,12 @@ const ImageStyle = styled.Image`
   margin-bottom:10px;
 `;
 
-// interface T{}
 type Props = {  
- data:[]
+ data:[],
+ isLoading:boolean,
+ fetchingStatus:boolean,
+ onLoad:boolean,
+ getApi?:any
 }
 
 export default MovieList
